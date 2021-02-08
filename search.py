@@ -89,23 +89,41 @@ def depthFirstSearch(problem):
 
     solution = list()
     
+    # Set of unique explored nodes.
+    explored = set()
+    
     def recursiveDFS(child_state):
+        """
+        child_state -> [(x,y), "action", cost]
+        """
 
         if problem.isGoalState(child_state[0]):
+            # If we found the goal we add the action to the solution list
             solution.append(child_state[1])
             return True
-        elif child_state[0] in problem._visitedlist:    
+
+        elif child_state[0] in explored:
+            # We don't explore already explored nodes
             return False
+
         else:
-            succ = problem.getSuccessors(child_state[0])
-            succ.reverse()
-            for c_state in succ:
+            successor_nodes = problem.getSuccessors(child_state[0])
+            # HINT: reverse the  getSuccessors list for better results
+            successor_nodes.reverse()
+            explored.add(child_state[0])
+
+            for c_state in successor_nodes:
                 if recursiveDFS(c_state):
                     if child_state[0] != problem.getStartState():
+                        # The fist node does not have an action.
+                        # So it is excluded from this operation
                         solution.append(child_state[1])
+
                     return True
     
     recursiveDFS([problem.getStartState()])
+    # Since the solution was created from Goal to StartState,
+    # we need to reverse the order of actions.
     solution.reverse()
     return solution
 
