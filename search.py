@@ -165,8 +165,54 @@ def breadthFirstSearch(problem):
 
 def uniformCostSearch(problem):
     """Search the node of least total cost first."""
-    "*** YOUR CODE HERE ***"
-    util.raiseNotDefined()
+    solution = list()
+    # Parents tracking dictionary
+    # Works like and explored set.
+    parents = {}
+    frontier = util.PriorityQueue()
+
+    if problem.isGoalState(problem.getStartState()):
+        return solution
+    else:
+        frontier.push([problem.getStartState(), 0.], 0.)
+        # Log start of path so it won't be expanded twice.
+        parents[problem.getStartState()] = [0]
+
+    while not frontier.isEmpty():
+
+        node = frontier.pop()
+
+        if problem.isGoalState(node[0]):
+            while node[0] != problem.getStartState():
+                # Backtrack parents until start point
+                solution.append(parents[node[0]][1])
+                # node = it's parent position
+                node = parents[node[0]]
+
+            # Since the solution was created from Goal to StartState,
+            # we need to reverse the order of actions.
+            solution.reverse()
+            return solution
+
+        for child_state in problem.getSuccessors(node[0]):
+            if child_state[0] not in parents.keys():
+                # Log child: parent -> action -> cost
+                parents[child_state[0]] = [node[0], child_state[1],
+                        child_state[-1]]
+                # Push to frontier with update COST OF PATH
+                frontier.push((child_state[0], child_state[1],
+                    child_state[-1] + node[-1]), child_state[-1] + node[-1])
+            
+            elif parents.get(child_state[0])[-1] > child_state[-1]:
+                # Update cost in parents' tracking dictionary is new parent's
+                # cost is lower.
+                parents[child_state[0]] = [node[0], child_state[1],
+                                          child_state[-1]]
+                # Update to frontier with update COST OF PATH
+                frontier.update((child_state[0], child_state[1],
+                    child_state[-1] + node[-1]), child_state[-1] + node[-1]) 
+        
+        #print(parents)
 
 def nullHeuristic(state, problem=None):
     """
