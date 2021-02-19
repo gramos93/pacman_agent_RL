@@ -134,34 +134,56 @@ def breadthFirstSearch(problem):
     # Parents tracking dictionary
     parents = {}
     frontier = util.Queue()
-
-    if problem.isGoalState(problem.getStartState()):
-        return solution
+    start_state = problem.getStartState()
+    # We check if the problem is single-goal or multi-goal
+    # May receive different state representations from different
+    # problems
+    if isinstance(start_state, list):
+        num_goals = start_state[-1]
+        start_state = start_state[0]
     else:
-        frontier.push([problem.getStartState()])
-        # Log start of path so it won't be expanded twice.
-        parents[problem.getStartState()] = "Start State"
+        num_goals = 1
+
+    frontier.push([start_state])
+    # Log start of path so it won't be expanded twice.
+    parents[start_state] = ""
 
     while not frontier.isEmpty():
         node = frontier.pop()
 
         if problem.isGoalState(node[0]):
-            while node[0] != problem.getStartState():
+            path_node = node
+            num_goals -= 1
+            solution_block = []
+            print("Goal at: {}, remaining {}".format(node[0], num_goals))
+            while path_node[0] != start_state:
                 # Backtrack parents until start point
-                solution.append(parents[node[0]][1])
+                solution_block.append(parents[path_node[0]][1])
                 # node = it's parent position
-                node = parents[node[0]]
+                path_node = parents[path_node[0]]
 
-            # Since the solution was created from Goal to StartState,
-            # we need to reverse the order of actions.
-            solution.reverse()
-            return solution
+            # If all goals are found we stop the search.
+            if num_goals == 0:
+                solution_block.reverse()                
+                solution.extend(solution_block[:])
+                break
+            # Else we append the solution for the intermediary goal
+            # and restart the problem from the pacman's last goal location.
+            else:
+                solution_block.reverse()                
+                solution.extend(solution_block)
+                start_state = node[0]
+                parents = {}
+                parents[start_state] = "Start State"
+                frontier = util.Queue()
 
         for child_state in problem.getSuccessors(node[0]):
             if child_state[0] not in parents.keys():
                 # Log child: parent -> action 
                 parents[child_state[0]] = [node[0], child_state[1]]
                 frontier.push(child_state)
+
+    return solution
 
 def uniformCostSearch(problem):
     """Search the node of least total cost first."""
