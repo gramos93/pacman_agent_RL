@@ -129,61 +129,29 @@ def depthFirstSearch(problem):
 
 def breadthFirstSearch(problem):
     """Search the shallowest nodes in the search tree first."""
-    
-    solution = list()
+
     # Parents tracking dictionary
-    parents = {}
+    explored = list()
+    # Frontier keeps track not only of the nodes but all expanded 
+    # branches of the graph
     frontier = util.Queue()
-    start_state = problem.getStartState()
-    # We check if the problem is single-goal or multi-goal
-    # May receive different state representations from different
-    # problems
-    if isinstance(start_state, list):
-        num_goals = start_state[-1]
-        start_state = start_state[0]
-    else:
-        num_goals = 1
+    node = (problem.getStartState(), "")
+    branch = list([node])
+    
+    while not problem.isGoalState(node[0]):
+        if node[0] not in explored:
+            for child_state in problem.getSuccessors(node[0]):
+                new_branch = list(branch)
+                new_branch.append(child_state)
+                frontier.push(new_branch)
 
-    frontier.push([start_state])
-    # Log start of path so it won't be expanded twice.
-    parents[start_state] = ""
+            explored.append(node[0])
+        
+        branch = frontier.pop()
+        node = branch[-1]
 
-    while not frontier.isEmpty():
-        node = frontier.pop()
-
-        if problem.isGoalState(node[0]):
-            path_node = node
-            num_goals -= 1
-            solution_block = []
-            print("Goal at: {}, remaining {}".format(node[0], num_goals))
-            while path_node[0] != start_state:
-                # Backtrack parents until start point
-                solution_block.append(parents[path_node[0]][1])
-                # node = it's parent position
-                path_node = parents[path_node[0]]
-
-            # If all goals are found we stop the search.
-            if num_goals == 0:
-                solution_block.reverse()                
-                solution.extend(solution_block[:])
-                break
-            # Else we append the solution for the intermediary goal
-            # and restart the problem from the pacman's last goal location.
-            else:
-                solution_block.reverse()                
-                solution.extend(solution_block)
-                start_state = node[0]
-                parents = {}
-                parents[start_state] = "Start State"
-                frontier = util.Queue()
-
-        for child_state in problem.getSuccessors(node[0]):
-            if child_state[0] not in parents.keys():
-                # Log child: parent -> action 
-                parents[child_state[0]] = [node[0], child_state[1]]
-                frontier.push(child_state)
-
-    return solution
+    solution = [action[1] for action in branch]
+    return solution[1:]
 
 def uniformCostSearch(problem):
     """Search the node of least total cost first."""

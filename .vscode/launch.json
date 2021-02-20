@@ -9,7 +9,7 @@
             "type": "python",
             "request": "launch",
             "program": "./pacman.py",
-            "args": ["-l", "mediumMaze", "-p", "SearchAgent"],
+            "args": ["-l", "tinyCorners", "-p", "SearchAgent", "-a", "fn=bfs,prob=CornersProblem"],
             "console": "integratedTerminal"
         }
     ]

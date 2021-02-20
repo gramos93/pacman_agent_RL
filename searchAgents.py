@@ -288,20 +288,20 @@ class CornersProblem(search.SearchProblem):
         # Please add any code here which you would like to use
         # in initializing the problem
         "*** YOUR CODE HERE ***"
-        self._visited, self._visitedlist, self._expanded = {}, [], 0 # DO NOT CHANGE
+        self._visited, self._visitedlist, self.foundGoals, self._expanded = {}, [], [], 0 # DO NOT CHANGE
 
     def getStartState(self):
         """
         Returns the start state (in your state space, not the full Pacman state
         space)
         """
-        return [self.startingPosition, len(self.corners)]
+        return (self.startingPosition, [])
 
     def isGoalState(self, state):
         """
         Returns whether this search state is a goal state of the problem.
         """
-        return state in self.corners
+        return True if len(state[-1]) == len(self.corners) else False
 
     def getSuccessors(self, state):
         """
@@ -313,7 +313,7 @@ class CornersProblem(search.SearchProblem):
             state, 'action' is the action required to get there, and 'stepCost'
             is the incremental cost of expanding to that successor
         """
-
+        x,y = state[0]
         successors = []
         for action in [Directions.NORTH, Directions.SOUTH, Directions.EAST, Directions.WEST]:
             # Add a successor state to the successor list if the action is legal
@@ -322,20 +322,23 @@ class CornersProblem(search.SearchProblem):
             #   dx, dy = Actions.directionToVector(action)
             #   nextx, nexty = int(x + dx), int(y + dy)
             #   hitsWall = self.walls[nextx][nexty]
-            x,y = state
+            
             dx, dy = Actions.directionToVector(action)
             nextx, nexty = int(x + dx), int(y + dy)
-            if not self.walls[nextx][nexty]:
-                nextState = (nextx, nexty)
-                cost = self.getCostOfActions([action])
-                successors.append( ( nextState, action, cost) )
+            nextState = (nextx, nexty)
+            if not self.walls[nextx][nexty] :
+                # State representation must keep tract of the goals reached by
+                # the agent in a brach.
+                foundGoals = list(state[-1])
+                if nextState in self.corners and not nextState in foundGoals:
+                    foundGoals.append(nextState)
+
+                successors.append(((nextState, foundGoals), action))
 
         self._expanded += 1 # DO NOT CHANGE
-        if state not in self._visited:
-            self._visited[state] = True
-            self._visitedlist.append(state)
-            if state in self.corners:
-                self.corners.remove(state)
+        if state[0] not in self._visited:
+            self._visited[state[0]] = True
+            self._visitedlist.append(state[0])
         
         return successors
 
