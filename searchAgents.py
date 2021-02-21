@@ -330,16 +330,12 @@ class CornersProblem(search.SearchProblem):
                 # State representation must keep tract of the goals reached by
                 # the agent in a brach.
                 foundGoals = list(state[-1])
-                if nextState in self.corners and not nextState in foundGoals:
+                if nextState in self.corners and not nextState in state[-1]:
                     foundGoals.append(nextState)
                 
                 successors.append(((nextState, foundGoals), action, 1.))
 
         self._expanded += 1 # DO NOT CHANGE
-        if state[0] not in self._visited:
-            self._visited[state[0]] = True
-            self._visitedlist.append(state[0])
-        
         return successors
 
     def getCostOfActions(self, actions):
@@ -471,8 +467,13 @@ def foodHeuristic(state, problem):
     problem.heuristicInfo['wallCount']
     """
     position, foodGrid = state
-    "*** YOUR CODE HERE ***"
-    return 0
+    manhattanDistance = lambda y: abs(position[0] - y[0]) + abs(position[1] - y[1])
+    cost = 0. 
+    # Sum of the manhattan distance to the remaining corners
+    for corner in foodGrid.asList():
+        cost += manhattanDistance(corner)
+    
+    return cost # Default to trivial solution
 
 class ClosestDotSearchAgent(SearchAgent):
     "Search for all food using a sequence of searches"

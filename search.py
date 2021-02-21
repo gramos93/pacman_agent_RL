@@ -132,8 +132,7 @@ def breadthFirstSearch(problem):
 
     # Parents tracking dictionary
     explored = list()
-    # Frontier keeps track not only of the nodes but all expanded 
-    # branches of the graph
+    # Frontier keeps track of the branches branches of the graph
     frontier = util.Queue()
     node = (problem.getStartState(), "")
     branch = list([node])
@@ -146,7 +145,10 @@ def breadthFirstSearch(problem):
                 frontier.push(new_branch)
 
             explored.append(node[0])
-        
+        if frontier.isEmpty():
+            # No solution found
+            return []
+
         branch = frontier.pop()
         node = branch[-1]
 
@@ -223,14 +225,17 @@ def aStarSearch(problem, heuristic=nullHeuristic):
         if node[0] not in explored:
             for child_state in problem.getSuccessors(node[0]):
                 h = heuristic(child_state[0], problem)
-                #print(h)
                 new_branch = list(branch[0])
                 new_branch.append(child_state)
                 frontier.push([new_branch, branch[-1] + child_state[-1]], 
                                h + branch[-1] + child_state[-1])
 
             explored.append(node[0])
-        
+
+        if frontier.isEmpty():
+            # No solution found
+            return []
+       
         branch = frontier.pop()
         node = branch[0][-1]
 
