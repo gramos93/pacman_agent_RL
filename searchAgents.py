@@ -296,7 +296,7 @@ class CornersProblem(search.SearchProblem):
         space)
         """
         return (self.startingPosition, [])
-
+            
     def isGoalState(self, state):
         """
         Returns whether this search state is a goal state of the problem.
@@ -365,16 +365,22 @@ def cornersHeuristic(state, problem):
     shortest path from the state to a goal of the problem; i.e.  it should be
     admissible (as well as consistent).
     """
+    position, foundGoals = state
     corners = problem.corners # These are the corner coordinates
     walls = problem.walls # These are the walls of the maze, as a Grid (game.py)
-    manhattanDistance = lambda y: abs(state[0][0] - y[0]) + abs(state[0][1] - y[1])
-    cost = 0. 
-    # Sum of the manhattan distance to the remaining corners
-    for corner in corners:
-        if not corner in state[1]:
-            cost += manhattanDistance(corner)
+
+    if len(foundGoals) == len(corners):
+        return 0.
+
+    manhattanDistance = lambda x, y: abs(x[0] - y[0]) + abs(x[1] - y[1])
     
-    return cost # Default to trivial solution
+    dist = [manhattanDistance(position, corner) for corner in
+            corners if not corner in foundGoals]
+    
+    dist.sort(reverse=True)
+    heuristic = dist.pop(0)
+
+    return heuristic
 
 class AStarCornersAgent(SearchAgent):
     "A SearchAgent for FoodSearchProblem using A* and your foodHeuristic"
@@ -467,14 +473,26 @@ def foodHeuristic(state, problem):
     problem.heuristicInfo['wallCount']
     """
     position, foodGrid = state
+    manhattanDistance = lambda x, y: abs(x[0] - y[0]) + abs(x[1] - y[1])
+    if len(foodGrid.asList()) == 0:
+        return 0
+    dist = [manhattanDistance(position, corner) for corner in
+            foodGrid.asList()]
+    
+    dist.sort(reverse=True)
+    heuristic = dist.pop(0)
+
+    return heuristic
+    """
+    position, foodGrid = state
     manhattanDistance = lambda y: abs(position[0] - y[0]) + abs(position[1] - y[1])
-    cost = 0. 
+    cost = 0.
     # Sum of the manhattan distance to the remaining corners
     for corner in foodGrid.asList():
         cost += manhattanDistance(corner)
-    
-    return cost # Default to trivial solution
 
+    return cost # Default to trivial solution
+"""
 class ClosestDotSearchAgent(SearchAgent):
     "Search for all food using a sequence of searches"
     def registerInitialState(self, state):
@@ -502,9 +520,19 @@ class ClosestDotSearchAgent(SearchAgent):
         food = gameState.getFood()
         walls = gameState.getWalls()
         problem = AnyFoodSearchProblem(gameState)
+        
+        def anyHeuristic(state, problem):
+            position = state
+            manhattanDistance = lambda y: abs(position[0] - y[0]) + abs(position[1] - y[1])
+            cost = 0. 
+            # Sum of the manhattan distance to the remaining corners
+            for corner in problem.food.asList():
+                cost += (manhattanDistance(corner) if manhattanDistance(corner)
+                    < 2 else 0)
+            
+            return cost # Default to trivial solution
 
-        "*** YOUR CODE HERE ***"
-        util.raiseNotDefined()
+        return search.aStarSearch(problem, heuristic=anyHeuristic)
 
 class AnyFoodSearchProblem(PositionSearchProblem):
     """
@@ -538,9 +566,7 @@ class AnyFoodSearchProblem(PositionSearchProblem):
         complete the problem definition.
         """
         x,y = state
-
-        "*** YOUR CODE HERE ***"
-        util.raiseNotDefined()
+        return (x, y) in self.food.asList()
 
 def mazeDistance(point1, point2, gameState):
     """
